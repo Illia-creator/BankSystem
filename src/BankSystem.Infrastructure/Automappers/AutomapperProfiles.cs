@@ -1,13 +1,16 @@
 ﻿using AutoMapper;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using BankSystem.Application.Dto.Mapper;
+using BankSystem.Core.Aggregate.Entities;
 
 namespace BankSystem.Infrastructure.Automappers
 {
     public class AutomapperProfiles : Profile
     {
+        public AutomapperProfiles()
+        {
+            CreateMap<RegisterNewAccountModel, Account>();
+            CreateMap<UpdateAccountModel, Account>();
+            CreateMap<Account, GetAccountModel>();
+        }
     }
 }

@@ -21,10 +21,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Controllers\" />
-  </ItemGroup>
-
-  <ItemGroup>
     <ProjectReference Include="..\BankSystem.Infrastructure\BankSystem.Infrastructure.csproj" />
   </ItemGroup>
 

@@ -3,6 +3,7 @@ using BankSystem.Application.IServices;
 using BankSystem.Core.Aggregate.Entities;
 using BankSystem.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Scaffolding.Metadata;
 using System.Text;
 
 namespace BankSystem.Infrastructure.Services
@@ -39,7 +40,7 @@ namespace BankSystem.Infrastructure.Services
             return true;
         }
 
-        public async Task<Account> Authenticate(AuthenticateDto authenticateDto)
+        public async Task<Account> AuthenticateAsync(AuthenticateDto authenticateDto)
         {
             var account = context.Accounts.Where(x => x.AccountNumberGenerated == authenticateDto.AccountNumber).SingleOrDefault();
             if (account == null) return null;
@@ -48,7 +49,7 @@ namespace BankSystem.Infrastructure.Services
             return account;
         }
 
-        public async Task<Account> Create(CreateAccountDto createAccountDto)
+        public async Task<Account> CreateAsync(CreateAccountDto createAccountDto)
         {
             if (context.Accounts.Any(x => x.Email == createAccountDto.Account.Email)) throw new ApplicationException("Account already exist with this email!");
             if (!createAccountDto.Pin.Equals(createAccountDto.ConfinmPin)) throw new ArgumentException("Pins do not match");
@@ -67,7 +68,7 @@ namespace BankSystem.Infrastructure.Services
             return createAccountDto.Account;
         }
 
-        public async Task Delete(int id)
+        public async Task DeleteAsync(int id)
         {
             var account = await context.Accounts.FindAsync(id);
             if (account == null) throw new ApplicationException($"Account with id: {id} does not exist");
@@ -78,28 +79,55 @@ namespace BankSystem.Infrastructure.Services
             }
         }
 
-        public async Task<IEnumerable<Account>> GetAllAccounts()
+        public async Task<IEnumerable<Account>> GetAllAccountsAsync()
         {
             return await context.Accounts.ToListAsync();
         }
 
-        public async Task<Account> GetByAccountNumber(Guid accountNumber)
+        public async Task<Account> GetByAccountNumberAsync(Guid accountNumber)
         {
             var account = await context.Accounts.FirstOrDefaultAsync(x => x.AccountNumberGenerated == accountNumber);
             if (account == null) return null;
             else return account;
         }
 
-        public async Task<Account> GetById(int id)
+        public async Task<Account> GetByIdAsync(int id)
         {
             var account = await context.Accounts.FirstOrDefaultAsync(x => x.Id == id);
             if (account == null) return null;
             else return account;
         }
 
-        public Task Update(UpdateAccountDto updateAccountDto)
+        public async Task UpdateAsync(UpdateAccountDto updateAccountDto)
         {
-            throw new NotImplementedException();
+            var accountToUpdate = await context.Accounts.FirstOrDefaultAsync(x => x.Email == updateAccountDto.Account.Email);
+            if (accountToUpdate == null) throw new ApplicationException("Accont does not exist");
+
+            if (!string.IsNullOrWhiteSpace(updateAccountDto.Account.Email))
+            {
+                if (await context.Accounts.AnyAsync(x => x.Email == updateAccountDto.Account.Email)) throw new ApplicationException($"Email \"{updateAccountDto.Account.Email}\" already exist");
+                else accountToUpdate.Email = updateAccountDto.Account.Email;
+            }
+
+            if (!string.IsNullOrWhiteSpace(updateAccountDto.Account.PhoneNumber))
+            {
+                if (await context.Accounts.AnyAsync(x => x.PhoneNumber == updateAccountDto.Account.PhoneNumber)) throw new ApplicationException($"Phone Number {updateAccountDto.Account.PhoneNumber} already exist");
+                else accountToUpdate.PhoneNumber = updateAccountDto.Account.PhoneNumber;
+            }
+
+            if (!string.IsNullOrWhiteSpace(updateAccountDto.Pin))
+            {
+                byte[] pinHash, pinSalt;
+
+                CreatePinHash(updateAccountDto.Pin, out pinHash, out pinSalt);
+
+                accountToUpdate.PinHash = pinHash;
+                accountToUpdate.PinSalt = pinSalt;
+            }
+            accountToUpdate.DateLastUpdated = DateTime.Now;
+
+            context.Accounts.Update(accountToUpdate);
+            await context.SaveChangesAsync();
         }
     }
 }
