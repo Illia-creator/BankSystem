@@ -2,6 +2,7 @@
 using BankSystem.Application.IServices;
 using BankSystem.Core.Aggregate.Entities;
 using BankSystem.Infrastructure.Persistence;
+using Microsoft.EntityFrameworkCore;
 using System.Text;
 
 namespace BankSystem.Infrastructure.Services
@@ -23,9 +24,28 @@ namespace BankSystem.Infrastructure.Services
             }
         }
 
-        public Task<Account> Authenticate(AuthenticateDto authenticateDto)
+        private static bool VerifyPinHash(string pin, byte[] pinHash, byte[] pinSalt)
         {
-            throw new NotImplementedException();
+            if (string.IsNullOrWhiteSpace(pin)) throw new ArgumentNullException("Pin");
+
+            using (var hmac = new System.Security.Cryptography.HMACSHA512(pinSalt))
+            {
+                var computedPinHash = hmac.ComputeHash(Encoding.UTF8.GetBytes(pin));
+                for (int i = 0; i < computedPinHash.Length; i++)
+                {
+                    if(computedPinHash[i] != pinHash[i]) return false;
+                }
+            }
+            return true;
+        }
+
+        public async Task<Account> Authenticate(AuthenticateDto authenticateDto)
+        {
+            var account = context.Accounts.Where(x => x.AccountNumberGenerated == authenticateDto.AccountNumber).SingleOrDefault();
+            if (account == null) return null;
+            if (!VerifyPinHash(authenticateDto.Pin, account.PinHash, account.PinSalt)) return null;
+
+            return account;
         }
 
         public async Task<Account> Create(CreateAccountDto createAccountDto)
@@ -42,26 +62,39 @@ namespace BankSystem.Infrastructure.Services
 
             context.Accounts.Add(createAccountDto.Account);
             await context.SaveChangesAsync();
+
+
+            return createAccountDto.Account;
         }
 
-        public Task Delete()
+        public async Task Delete(int id)
         {
-            throw new NotImplementedException();
+            var account = await context.Accounts.FindAsync(id);
+            if (account == null) throw new ApplicationException($"Account with id: {id} does not exist");
+            else 
+            {
+                context.Accounts.Remove(account);
+                await context.SaveChangesAsync();
+            }
         }
 
-        public Task<IEnumerable<Account>> GetAllAccounts()
+        public async Task<IEnumerable<Account>> GetAllAccounts()
         {
-            throw new NotImplementedException();
+            return await context.Accounts.ToListAsync();
         }
 
-        public Task<Account> GetByAccountNumber(string accountNumber)
+        public async Task<Account> GetByAccountNumber(Guid accountNumber)
         {
-            throw new NotImplementedException();
+            var account = await context.Accounts.FirstOrDefaultAsync(x => x.AccountNumberGenerated == accountNumber);
+            if (account == null) return null;
+            else return account;
         }
 
-        public Task<Account> GetById(int id)
+        public async Task<Account> GetById(int id)
         {
-            throw new NotImplementedException();
+            var account = await context.Accounts.FirstOrDefaultAsync(x => x.Id == id);
+            if (account == null) return null;
+            else return account;
         }
 
         public Task Update(UpdateAccountDto updateAccountDto)

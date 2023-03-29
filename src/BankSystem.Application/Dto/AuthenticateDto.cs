@@ -2,7 +2,7 @@
 {
     public class AuthenticateDto
     {
-        public string AccountNumber { get; set; }
+        public Guid AccountNumber { get; set; }
         public string Pin { get; set; }
     }
 }

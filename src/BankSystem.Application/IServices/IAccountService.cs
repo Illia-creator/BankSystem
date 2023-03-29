@@ -9,8 +9,8 @@ namespace BankSystem.Application.IServices
         Task<IEnumerable<Account>> GetAllAccounts();
         Task<Account> Create(CreateAccountDto createAccountDto);
         Task Update(UpdateAccountDto updateAccountDto);
-        Task Delete();
+        Task Delete(int id);
         Task<Account> GetById(int id);
-        Task<Account> GetByAccountNumber(string accountNumber);
+        Task<Account> GetByAccountNumber(Guid accountNumber);
     }
 }
