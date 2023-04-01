@@ -14,7 +14,7 @@ namespace BankSystem.Application.Dto.Mapper
         public DateTime DateUpdated { get; set; }
 
         [Required]
-        [RegularExpression(@"^[0-9]\d[4]$", ErrorMessage = "Pin must be 4 digits")]
+        [RegularExpression(@"^\d{4}$", ErrorMessage = "Pin must be 4 digits")]
         public string Pin { get; set; }
 
         [Compare("Pin", ErrorMessage = "Pins do not match")]

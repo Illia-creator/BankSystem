@@ -4,6 +4,7 @@ using BankSystem.Core.Aggregate.Entities;
 using BankSystem.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Scaffolding.Metadata;
+using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using System.Text;
 
 namespace BankSystem.Infrastructure.Services
@@ -48,6 +49,14 @@ namespace BankSystem.Infrastructure.Services
 
             return account;
         }
+        public async Task<Account> AuthenticateAsync(string accountNumber, string pin)
+        {
+            var account = context.Accounts.Where(x => x.AccountNumberGenerated == accountNumber).SingleOrDefault();
+            if (account == null) return null;
+            if (!VerifyPinHash(pin, account.PinHash, account.PinSalt)) return null;
+
+            return account;
+        }
 
         public async Task<Account> CreateAsync(CreateAccountDto createAccountDto)
         {
@@ -84,7 +93,7 @@ namespace BankSystem.Infrastructure.Services
             return await context.Accounts.ToListAsync();
         }
 
-        public async Task<Account> GetByAccountNumberAsync(Guid accountNumber)
+        public async Task<Account> GetByAccountNumberAsync(string accountNumber)
         {
             var account = await context.Accounts.FirstOrDefaultAsync(x => x.AccountNumberGenerated == accountNumber);
             if (account == null) return null;
@@ -98,7 +107,7 @@ namespace BankSystem.Infrastructure.Services
             else return account;
         }
 
-        public async Task UpdateAsync(UpdateAccountDto updateAccountDto)
+        public async Task UpdateAsync(UpdateAccountPinDto updateAccountDto)
         {
             var accountToUpdate = await context.Accounts.FirstOrDefaultAsync(x => x.Email == updateAccountDto.Account.Email);
             if (accountToUpdate == null) throw new ApplicationException("Accont does not exist");

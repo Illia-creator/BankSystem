@@ -1,5 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using System.Text.Json.Serialization;
 
 namespace BankSystem.Core.Aggregate.Entities
 {
@@ -15,15 +16,19 @@ namespace BankSystem.Core.Aggregate.Entities
         public string Email { get; set; }
         public decimal CurrentAccountBalance { get; set; }
         public AccountType AccountType { get; set; }
-        public Guid AccountNumberGenerated { get; set; }
+        public string AccountNumberGenerated { get; set; }
+        [JsonIgnore]
         public byte[] PinHash { get; set; }
+        [JsonIgnore]
         public byte[] PinSalt { get; set; }
         public DateTime DateCreated { get; set; }
         public DateTime DateLastUpdated { get; set; }
-
+         
+        Random rand = new Random();
         public Account()
         {
             AccountName = $"{FirstName}_{LastName}";
+            AccountNumberGenerated = Convert.ToString((long) Math.Floor(rand.NextDouble() * 9_000_000_000L + 1_000_000_000L));
         }
     }
 

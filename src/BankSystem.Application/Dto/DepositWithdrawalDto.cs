@@ -2,8 +2,7 @@
 {
     public class DepositWithdrawalDto
     {
-        public string AccounyNumber { get; set; }
+        public AuthenticateDto authenticate { get; set; }
         public decimal Amount { get; set; }
-        public string TransactionPin { get; set; }
     }
 }

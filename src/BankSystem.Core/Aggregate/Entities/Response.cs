@@ -1,10 +1,13 @@
-﻿namespace BankSystem.Core.Aggregate.Entities
+﻿using System.ComponentModel.DataAnnotations;
+
+namespace BankSystem.Core.Aggregate.Entities
 {
     public class Response
     {
         public Guid RequestId { get; set; }
-        public int ResponseCode { get; set; }
+        [RegularExpression(@"^\d{2}$")]
+        public string ResponseCode { get; set; }
         public string ResponseMessage { get; set; }
-        public DateTime Date { get; set; }
+        public object Data { get; set; }
     }
 }

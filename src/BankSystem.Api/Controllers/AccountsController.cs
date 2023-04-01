@@ -4,6 +4,7 @@ using BankSystem.Application.Dto.Mapper;
 using BankSystem.Application.IServices;
 using BankSystem.Core.Aggregate.Entities;
 using Microsoft.AspNetCore.Mvc;
+using System.Text.RegularExpressions;
 
 namespace BankSystem.Api.Controllers
 {
@@ -57,5 +58,37 @@ namespace BankSystem.Api.Controllers
             return Ok(result);
         }
 
+        [HttpGet]
+        [Route("account_by_number")]
+        public async Task<IActionResult> GetAccountByNumber(string number)
+        {
+            if (!Regex.IsMatch(number, @"^[0][0-9]\d{9}$|^[1-9]\d{9}$")) return BadRequest("Account number must be 10-digit");
+
+            var account = await service.GetByAccountNumberAsync(number);
+            var clearAccount = mapper.Map<GetAccountModel>(account);
+            return Ok(clearAccount);
+        }
+
+        [HttpGet]
+        [Route("account_by_id")]
+        public async Task<IActionResult> GetAccountById(int id)
+        {
+            var account = await service.GetByIdAsync(id);
+            var clearAccount = mapper.Map<GetAccountModel>(account);
+            return Ok(clearAccount);
+        }
+
+        [HttpPut]
+        [Route("update-account")]
+        public async Task<IActionResult> UpdateAccount([FromBody] UpdateAccountModel model)
+        {
+            if (!ModelState.IsValid) return BadRequest(model);
+
+            UpdateAccountPinDto updateAccount = mapper.Map<UpdateAccountPinDto>(model);
+
+            await service.UpdateAsync(updateAccount);
+
+            return Ok();
+        }
     }
 }

@@ -14,7 +14,7 @@ namespace BankSystem.Application.Dto.Mapper
         public string Email { get; set; }
         public decimal CurrentAccountBalance { get; set; }
         public AccountType AccountType { get; set; }
-        public Guid AccountNumberGenerated { get; set; }
+        public string AccountNumberGenerated { get; set; }
         public DateTime DateCreated { get; set; }
         public DateTime DateLastUpdated { get; set; }
     }
